@@ -14,9 +14,10 @@ FIXTURES_RAW_ATTR = "fixtures_raw"
 # File paths for fetched and output CSVs
 PLAYERS_RAW_PATH = "data_fetched/players_raw.csv"
 FIXTURES_RAW_PATH = "data_fetched/fixtures_raw.csv"
-STARTERS_CSV_PATH = "output/starters.csv"
-BENCH_CSV_PATH = "output/bench.csv"
+STARTERS_CSV_PATH = "output/best_starters.csv"
+BENCH_CSV_PATH = "output/best_bench.csv"
 ALLPLAYERS_CSV_PATH = "output/all_players.csv"
+TRANSFER_SUGGESTION_CSV_PATH_TEAM1 = "output/transfer_suggestions_team1.csv"
 
 # Scoring weights for EP calculation
 SCORE_WEIGHTS = {

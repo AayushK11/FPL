@@ -54,12 +54,22 @@ class MainController:
             print("Transfers |    No team built yet. Please run build_team() first.")
             return
         
+        output_cols = [
+            "web_name", "team", "position_code", "now_cost", "ep_next_3gw", "total_points", "form", "xG", "xA"
+        ]
+        
         team, bank = self.fetch_user_team(TEAM1.get("ENTRY_ID"), GW)
         transfer_manager = FPLTransferManager(self.result["players"])
+        my_team = None
         if TEAM1.get("TRANSFER_LIMIT", 1) == 1:
-            transfer_manager.make_single_transfer(team, bank)
+            my_team = transfer_manager.make_single_transfer(team, bank)
         else:
-            transfer_manager.make_double_transfer(team, bank)            
+            my_team = transfer_manager.make_double_transfer(team, bank)
+
+        available_cols = [col for col in output_cols if col in my_team.columns]
+        my_team[available_cols].to_csv(TRANSFER_SUGGESTION_CSV_PATH_TEAM1, index=False)
+        print(f"Transfers  |    Saved transfer suggestions to {TRANSFER_SUGGESTION_CSV_PATH_TEAM1}")
+                    
         
     def run(self):
         self.fetch_data()
