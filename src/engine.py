@@ -216,6 +216,7 @@ class FPLOddsEngine:
             * minutes_multiplier
             * form_multiplier
             * selected_multiplier
+            * 3  # for next 3 GWs
         )
 
         # --- Value metric ---
@@ -561,14 +562,12 @@ class FPLTransferManager:
     def __init__(self, players_df):
         self.players_df = players_df.copy()
 
-    def make_transfer(self, current_team, bank=0):
+    def make_single_transfer(self, current_team, bank=0):
         my_team_ids = [p["element"] for p in current_team]
-        
-        my_team = self.players_df[self.players_df["id"].isin(my_team_ids)]
+        my_team = self.players_df[self.players_df["id"].isin(my_team_ids)].copy()
 
-        # --- Find best transfer ---
-        squad_ids = set(my_team_ids)
-        candidates = self.players_df[~self.players_df["id"].isin(squad_ids)]
+        # --- EP before transfer
+        current_ep = my_team["ep_next_3gw"].sum()
 
         best_delta = -999
         best_transfer = None
@@ -589,7 +588,79 @@ class FPLTransferManager:
 
         if best_transfer:
             out_row, in_row = best_transfer
+
+            # --- update team for new EP
+            new_team = my_team.drop(my_team[my_team["id"] == out_row["id"]].index)
+            new_team = pd.concat([new_team, pd.DataFrame([in_row])], ignore_index=True)
+            new_ep = new_team["ep_next_3gw"].sum()
+
             print(f"Transfers  |    Suggested Transfer:")
-            print(f"Transfers  |    OUT: {out_row['web_name']} ({out_row['ep_next_3gw']:.2f} EP, £{out_row['now_cost']/10:.1f}m)")
-            print(f"Transfers  |    IN : {in_row['web_name']} ({in_row['ep_next_3gw']:.2f} EP, £{in_row['now_cost']/10:.1f}m)")
-            print(f"Transfers  |    Δ Expected Points: {best_delta:.2f}")
+            print(f"Transfers  |        OUT: {out_row['web_name']} ({out_row['ep_next_3gw']:.2f} EP, £{out_row['now_cost']/10:.1f}m)")
+            print(f"Transfers  |        IN : {in_row['web_name']} ({in_row['ep_next_3gw']:.2f} EP, £{in_row['now_cost']/10:.1f}m)")
+            print(f"Transfers  |    Current XI EP: {current_ep:.2f}")
+            print(f"Transfers  |    New XI EP: {new_ep:.2f}")
+            print(f"Transfers  |    Δ Expected Points: {new_ep - current_ep:.2f}")
+        else:
+            print("Transfers  |    No valid transfer found.")
+
+        return new_team
+
+    def make_double_transfer(self, current_team, bank=0):
+        my_team_ids = [p["element"] for p in current_team]
+        my_team = self.players_df[self.players_df["id"].isin(my_team_ids)].copy()
+
+        transfers = []
+        total_delta = 0
+        remaining_bank = bank
+
+        # --- EP before transfers
+        current_ep = my_team["ep_next_3gw"].sum()
+
+        for t in range(2):  # do two transfers
+            best_delta = -999
+            best_transfer = None
+
+            for _, out_row in my_team.iterrows():
+                max_price = out_row["now_cost"] + remaining_bank
+                candidates = self.players_df[
+                    (self.players_df["element_type"] == out_row["element_type"]) &
+                    (~self.players_df["id"].isin(my_team["id"])) &
+                    (self.players_df["now_cost"] <= max_price)
+                ]
+
+                for _, in_row in candidates.iterrows():
+                    delta = in_row["ep_next_3gw"] - out_row["ep_next_3gw"]
+                    if delta > best_delta:
+                        best_delta = delta
+                        best_transfer = (out_row, in_row)
+
+            if best_transfer:
+                out_row, in_row = best_transfer
+                transfers.append((out_row, in_row))
+                total_delta += best_delta
+
+                # update my team
+                my_team = my_team.drop(my_team[my_team["id"] == out_row["id"]].index)
+                in_row_df = pd.DataFrame([in_row])
+                my_team = pd.concat([my_team, in_row_df], ignore_index=True)
+
+                # update bank
+                remaining_bank += out_row["now_cost"] - in_row["now_cost"]
+            else:
+                break  # no valid transfer found
+
+        # --- EP after transfers
+        new_ep = my_team["ep_next_3gw"].sum()
+
+        if transfers:
+            print("Transfers  |    Suggested Double Transfer:")
+            for out_row, in_row in transfers:
+                print(f"Transfers  |        OUT: {out_row['web_name']} ({out_row['ep_next_3gw']:.2f} EP, £{out_row['now_cost']/10:.1f}m)")
+                print(f"Transfers  |        IN : {in_row['web_name']} ({in_row['ep_next_3gw']:.2f} EP, £{in_row['now_cost']/10:.1f}m)")
+            print(f"Transfers  |    Current XI EP: {current_ep:.2f}")
+            print(f"Transfers  |    New XI EP: {new_ep:.2f}")
+            print(f"Transfers  |    Δ Expected Points: {new_ep - current_ep:.2f}")
+        else:
+            print("Transfers  |    No valid transfers found.")
+
+        return my_team

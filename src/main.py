@@ -54,10 +54,13 @@ class MainController:
             print("Transfers |    No team built yet. Please run build_team() first.")
             return
         
-        team, bank = self.fetch_user_team(TEAM1_ENTRY_ID, GW)
+        team, bank = self.fetch_user_team(TEAM1.get("ENTRY_ID"), GW)
         transfer_manager = FPLTransferManager(self.result["players"])
-        transfer_manager.make_transfer(team, bank)
-
+        if TEAM1.get("TRANSFER_LIMIT", 1) == 1:
+            transfer_manager.make_single_transfer(team, bank)
+        else:
+            transfer_manager.make_double_transfer(team, bank)            
+        
     def run(self):
         self.fetch_data()
         print("Scraper    |    Data fetched and saved successfully.")
