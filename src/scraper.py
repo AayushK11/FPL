@@ -1,9 +1,9 @@
-
 import os
 import requests
 import pandas as pd
 from understatapi import UnderstatClient
 import constants
+
 
 class FPLDataFetcher:
     """Class to fetch FPL data from the API."""
@@ -28,7 +28,9 @@ class FPLDataFetcher:
 
     def fetch_live_fpl_data(self):
         players, teams, positions = self.fetch_players()
-        print(f"Scraper    |    Fetched {len(players)} players, {len(teams)} teams, and {len(positions)} positions.")
+        print(
+            f"Scraper    |    Fetched {len(players)} players, {len(teams)} teams, and {len(positions)} positions."
+        )
         fixtures = self.fetch_fixtures()
         print(f"Scraper    |    Fetched {len(fixtures)} fixtures.")
         return {

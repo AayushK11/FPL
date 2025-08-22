@@ -1,5 +1,4 @@
-
-# FPL API endpoints
+# ------------------ FPL API Endpoints ------------------ #
 FPL_API_URL = "https://fantasy.premierleague.com/api/bootstrap-static/"
 FIXTURES_API_URL = "https://fantasy.premierleague.com/api/fixtures/"
 
@@ -7,19 +6,21 @@ FIXTURES_API_URL = "https://fantasy.premierleague.com/api/fixtures/"
 FPL_BOOTSTRAP = FPL_API_URL
 FPL_FIXTURES = FIXTURES_API_URL
 
-# Attribute names for fetched data
+# ------------------ Fetched Data Attributes ------------------ #
 PLAYERS_RAW_ATTR = "players_raw"
 FIXTURES_RAW_ATTR = "fixtures_raw"
 
-# File paths for fetched and output CSVs
+# ------------------ File Paths ------------------ #
 PLAYERS_RAW_PATH = "data_fetched/players_raw.csv"
 FIXTURES_RAW_PATH = "data_fetched/fixtures_raw.csv"
+XGXA_CSV_PATH = "data_fetched/xg_xa.csv"
+
 STARTERS_CSV_PATH = "output/best_starters.csv"
 BENCH_CSV_PATH = "output/best_bench.csv"
 ALLPLAYERS_CSV_PATH = "output/all_players.csv"
 TRANSFER_SUGGESTION_CSV_PATH_TEAM1 = "output/transfer_suggestions_team1.csv"
 
-# Scoring weights for EP calculation
+# ------------------ Scoring Weights for Expected Points ------------------ #
 SCORE_WEIGHTS = {
     "total_points": 0.35,
     "form": 0.15,
@@ -29,10 +30,10 @@ SCORE_WEIGHTS = {
     "expected_minutes_next": 0.10,
     "injury_penalty": 0.5,
     "minutes_threshold": 60,
-    "chance_play_threshold": 80
+    "chance_play_threshold": 80,
 }
 
-# FPL rules
+# ------------------ FPL Rules ------------------ #
 FPL_RULES = {
     "budget": 100.0,
     "pos_limits": {"GKP": 1, "DEF": 3, "MID": 3, "FWD": 1},
@@ -40,10 +41,10 @@ FPL_RULES = {
     "team_limit": 3,
     "starting_xi": 11,
     "bench_size": 4,
-    "bench_gkp_max": 1
+    "bench_gkp_max": 1,
 }
 
-# Points and formation parameters (if needed elsewhere)
+# ------------------ Points & Formation Parameters ------------------ #
 POINTS_PARAM = {
     "goal_points": 4,
     "assist_points": 3,
@@ -56,16 +57,17 @@ POINTS_PARAM = {
 }
 
 FORMATION_RULES = {
-    "GK": (2, 2),
-    "DEF": (5, 5),
-    "MID": (5, 5),
-    "FWD": (3, 3),
+    "GK": (1, 1),
+    "DEF": (3, 5),
+    "MID": (2, 5),
+    "FWD": (1, 3),
 }
 
 MINUTES_FLOOR = 0.5
 FIXTURE_EASY_BOOST = 1.1
 FIXTURE_HARD_PENALTY = 0.85
 
+# ------------------ User Team & Gameweek ------------------ #
 TEAM1 = {
     "ENTRY_ID": 3816560,
     "TRANSFER_LIMIT": 1,
