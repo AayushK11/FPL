@@ -89,15 +89,15 @@ class MainController:
         )
         return user_team, bank
 
-    def suggest_transfers(self):
+    def suggest_transfers(self, entry_id, transfer_limit, event_id):
         if not self.result:
             print("Transfers |    No team built yet. Run build_team() first.")
             return
 
-        team, bank = self.fetch_user_team(TEAM1.get("ENTRY_ID"), GW)
+        team, bank = self.fetch_user_team(entry_id, event_id)
         transfer_manager = FPLTransferManager(self.result["players"])
 
-        if TEAM1.get("TRANSFER_LIMIT", 1) == 1:
+        if transfer_limit == 1:
             my_team = transfer_manager.make_single_transfer(team, bank)
         else:
             my_team = transfer_manager.make_double_transfer(team, bank)
@@ -114,10 +114,23 @@ class MainController:
             "xA",
         ]
         available_cols = [col for col in output_cols if col in my_team.columns]
-        my_team[available_cols].to_csv(TRANSFER_SUGGESTION_CSV_PATH_TEAM1, index=False)
-        print(
-            f"Transfers  |    Saved transfer suggestions to {TRANSFER_SUGGESTION_CSV_PATH_TEAM1}"
+        csv_path = (
+            TRANSFER_SUGGESTION_CSV_PATH_TEAM1
+            if entry_id == TEAM1["ENTRY_ID"]
+            else TRANSFER_SUGGESTION_CSV_PATH_TEAM2
         )
+        my_team[available_cols].to_csv(csv_path, index=False)
+        print(
+            f"Transfers  |    Saved transfer suggestions to {csv_path}"
+        )
+
+    def transfer_controller(self):
+        self.suggest_transfers(TEAM1["ENTRY_ID"], TEAM1["TRANSFER_LIMIT"], GW)
+        print("Transfers  |    Suggested transfers based on current team.")
+        print("-----------------------------------------------------------------------")
+        self.suggest_transfers(TEAM2["ENTRY_ID"], TEAM2["TRANSFER_LIMIT"], GW)
+        print("Transfers  |    Suggested transfers based on current team.")
+        print("-----------------------------------------------------------------------")
 
     # ------------------ Run Full Pipeline ------------------ #
     def run(self):
@@ -133,9 +146,7 @@ class MainController:
         print("FPL Engine |    Results output successfully.")
         print("-----------------------------------------------------------------------")
 
-        self.suggest_transfers()
-        print("Transfers  |    Suggested transfers based on current team.")
-        print("-----------------------------------------------------------------------")
+        self.transfer_controller()
         print("FPL Engine |    All operations completed successfully.")
 
 

@@ -19,6 +19,7 @@ STARTERS_CSV_PATH = "output/best_starters.csv"
 BENCH_CSV_PATH = "output/best_bench.csv"
 ALLPLAYERS_CSV_PATH = "output/all_players.csv"
 TRANSFER_SUGGESTION_CSV_PATH_TEAM1 = "output/transfer_suggestions_team1.csv"
+TRANSFER_SUGGESTION_CSV_PATH_TEAM2 = "output/transfer_suggestions_team2.csv"
 
 # ------------------ Scoring Weights for Expected Points ------------------ #
 SCORE_WEIGHTS = {
@@ -70,6 +71,10 @@ FIXTURE_HARD_PENALTY = 0.85
 # ------------------ User Team & Gameweek ------------------ #
 TEAM1 = {
     "ENTRY_ID": 3816560,
+    "TRANSFER_LIMIT": 2,
+}
+TEAM2 = {
+    "ENTRY_ID": 10457709,
     "TRANSFER_LIMIT": 1,
 }
-GW = 1
+GW = 2
