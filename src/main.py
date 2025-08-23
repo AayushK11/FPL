@@ -25,13 +25,18 @@ class MainController:
                 self.fpl_data["fixtures"], constants.FIXTURES_RAW_PATH, "SCRAPER"
             )
 
+        if "teams" in self.fpl_data:
+            logger.save_csv(self.fpl_data["teams"], constants.TEAMS_RAW_PATH, "SCRAPER")
+
         self.xgxa_df = fetcher.get_xgxa_df("EPL", "2025")
         logger.save_csv(self.xgxa_df, constants.XGXA_CSV_PATH, "SCRAPER")
 
     # ------------------ Team Building ------------------ #
     def build_team(self):
         engine = FPLOddsEngine(
-            self.players_df, fixtures_df=self.fpl_data.get("fixtures")
+            self.players_df,
+            fixtures_df=self.fpl_data.get("fixtures"),
+            teams_df=self.fpl_data.get("teams"),
         )
         players_ep = engine.compute_expected_points(xgxa_df=self.xgxa_df)
 

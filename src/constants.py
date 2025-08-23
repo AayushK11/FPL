@@ -7,6 +7,7 @@ USER_TEAM_URL_TEMPLATE = BASE_URL + "entry/{entry_id}/event/{event_id}/picks/"
 # ------------------ File Paths ------------------ #
 PLAYERS_RAW_PATH = "data/players_raw.csv"
 FIXTURES_RAW_PATH = "data/fixtures_raw.csv"
+TEAMS_RAW_PATH = "data/teams_raw.csv"
 XGXA_CSV_PATH = "data/xgxa.csv"
 ALLPLAYERS_CSV_PATH = "output/all_players.csv"
 BEST_ELEVEN_CSV_PATH = "output/best_eleven.csv"
@@ -48,7 +49,7 @@ FORMATION_RULES = {
 # ------------------ Output Columns ------------------ #
 OUTPUT_COLS = [
     "web_name",
-    "team",
+    "team_name",
     "position_code",
     "now_cost",
     "ep_next_3gw",

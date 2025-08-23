@@ -159,6 +159,9 @@ class FPLOddsEngine:
         ) / 2
         strength_map = self.teams_df.set_index("id")["strength_avg"].to_dict()
         players["team_strength"] = players["team"].map(strength_map).fillna(1.0)
+        players["team_name"] = players["team"].map(
+            self.teams_df.set_index("id")["name"]
+        )
         return players
 
     def _apply_odds_multiplier(self, players):
@@ -241,7 +244,9 @@ class FPLTeamOptimizer:
         self.players_df = players_df.copy()
 
     def optimize_squad(self, budget=100.0, squad_size=15, team_limit=3):
-        self.players_df["position_code"] = self.players_df["element_type"].map(constants.POSITION_MAP)
+        self.players_df["position_code"] = self.players_df["element_type"].map(
+            constants.POSITION_MAP
+        )
 
         prob = pulp.LpProblem("FPL_Squad_Optimize", pulp.LpMaximize)
         x = pulp.LpVariable.dicts(
@@ -298,7 +303,8 @@ class FPLTransferManager:
                 # Enforce team limit
                 candidates = candidates[
                     candidates["team"].apply(
-                        lambda team_id: team_counts.get(team_id, 0) < constants.TEAM_PLAYER_LIMIT
+                        lambda team_id: team_counts.get(team_id, 0)
+                        < constants.TEAM_PLAYER_LIMIT
                         or team_id == out_row["team"]  # allow swapping within same team
                     )
                 ]
@@ -312,14 +318,18 @@ class FPLTransferManager:
             if best_transfer:
                 out_row, in_row = best_transfer
                 my_team = my_team.drop(my_team[my_team["id"] == out_row["id"]].index)
-                my_team = pd.concat([my_team, pd.DataFrame([in_row])], ignore_index=True)
+                my_team = pd.concat(
+                    [my_team, pd.DataFrame([in_row])], ignore_index=True
+                )
                 remaining_bank += out_row["now_cost"] - in_row["now_cost"]
                 transfers.append(best_transfer)
             else:
                 break
 
         if "position_code" not in my_team.columns and "element_type" in my_team.columns:
-            my_team["position_code"] = my_team["element_type"].map(constants.POSITION_MAP)
+            my_team["position_code"] = my_team["element_type"].map(
+                constants.POSITION_MAP
+            )
 
         new_ep = my_team["ep_next_3gw"].sum()
         return my_team, transfers, current_ep, new_ep

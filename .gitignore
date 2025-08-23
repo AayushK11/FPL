@@ -1,2 +1,4 @@
 __pycache__/
-*.csv
+*_raw.csv
+xgxa.csv
+all_players.csv

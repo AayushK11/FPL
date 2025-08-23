@@ -55,7 +55,9 @@ class FPLDataFetcher:
         logger.log(f"Saved xG/xA data to {output_file}", "SCRAPER")
 
     def fetch_user_team(self, entry_id: int, event_id: int):
-        url = constants.USER_TEAM_URL_TEMPLATE.format(entry_id=entry_id, event_id=event_id)
+        url = constants.USER_TEAM_URL_TEMPLATE.format(
+            entry_id=entry_id, event_id=event_id
+        )
         r = requests.get(url, timeout=self.timeout)
         r.raise_for_status()
         return r.json()["picks"], r.json()["entry_history"]["bank"] / 10.0
