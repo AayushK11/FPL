@@ -316,26 +316,7 @@ class FPLTransferManager:
         new_team, transfers, current_ep, new_ep = self._find_best_transfer(
             my_team, bank, max_transfers=1
         )
-
-        if transfers:
-            logger.log("Suggested Transfer:", "TRANSFERS")
-            out_row, in_row = transfers[0]
-            logger.log("Suggested Transfer:", "TRANSFERS")
-            logger.log(
-                f"\tOUT: {out_row['web_name']} | EP: {out_row['ep_next_3gw']:.2f} | Cost: £{out_row['now_cost']/10:.1f}m",
-                "TRANSFERS",
-            )
-            logger.log(
-                f"\tIN : {in_row['web_name']} | EP: {in_row['ep_next_3gw']:.2f} | Cost: £{in_row['now_cost']/10:.1f}m",
-                "TRANSFERS",
-            )
-            logger.log(
-                f"Current XI EP: {current_ep:.2f} | New XI EP: {new_ep:.2f} | Δ EP: {new_ep-current_ep:.2f}",
-                "TRANSFERS",
-            )
-        else:
-            logger.log("No valid transfer found.", "TRANSFERS")
-
+        logger.log_transfer(transfers, current_ep, new_ep, double=False)
         return new_team
 
     def make_double_transfer(self, current_team, bank=0):
@@ -344,22 +325,5 @@ class FPLTransferManager:
         new_team, transfers, current_ep, new_ep = self._find_best_transfer(
             my_team, bank, max_transfers=2
         )
-
-        if transfers:
-            logger.log("Suggested Double Transfer:", "TRANSFERS")
-            for out_row, in_row in transfers:
-                logger.log(
-                    f"\tOUT: {out_row['web_name']} | EP: {out_row['ep_next_3gw']:.2f} | Cost: £{out_row['now_cost']/10:.1f}m",
-                    "TRANSFERS",
-                )
-                logger.log(
-                    f"\tIN : {in_row['web_name']} | EP: {in_row['ep_next_3gw']:.2f} | Cost: £{in_row['now_cost']/10:.1f}m",
-                    "TRANSFERS",
-                )
-            logger.log(
-                f"Current XI EP: {current_ep:.2f} | New XI EP: {new_ep:.2f} | Δ EP: {new_ep-current_ep:.2f}",
-                "TRANSFERS",
-            )
-        else:
-            logger.log("No valid transfers found.", "TRANSFERS")
+        logger.log_transfer(transfers, current_ep, new_ep, double=True)
         return new_team

@@ -18,13 +18,15 @@ class MainController:
 
         if "players" in self.fpl_data:
             self.players_df = self.fpl_data["players"].copy()
-            self.players_df.to_csv(constants.PLAYERS_RAW_PATH, index=False)
+            logger.save_csv(self.players_df, constants.PLAYERS_RAW_PATH, "SCRAPER")
 
         if "fixtures" in self.fpl_data:
-            self.fpl_data["fixtures"].to_csv(constants.FIXTURES_RAW_PATH, index=False)
+            logger.save_csv(
+                self.fpl_data["fixtures"], constants.FIXTURES_RAW_PATH, "SCRAPER"
+            )
 
         self.xgxa_df = fetcher.get_xgxa_df("EPL", "2025")
-        self.xgxa_df.to_csv(constants.XGXA_CSV_PATH, index=False)
+        logger.save_csv(self.xgxa_df, constants.XGXA_CSV_PATH, "SCRAPER")
 
     # ------------------ Team Building ------------------ #
     def build_team(self):
@@ -41,47 +43,27 @@ class MainController:
     # ------------------ Output ------------------ #
     def output_results(self):
         if not self.result:
-            logger.log("No team built yet", "ENGINE")
+            logger.log("No team built yet.", "ENGINE")
             return
 
+        # Save Best Eleven
         best_eleven = self.result["best_eleven"].copy()
-        all_players = self.result["players"].copy()
-
         for col in constants.OUTPUT_COLS:
             if col not in best_eleven.columns:
-                best_eleven[col] = (
-                    0.0
-                    if col
-                    in ["now_cost", "ep_next_3gw", "total_points", "form", "xG", "xA"]
-                    else ""
-                )
+                best_eleven[col] = 0.0 if col in constants.NUMERIC_COLUMNS else ""
+        logger.save_best_eleven(best_eleven)
 
-        best_eleven[constants.OUTPUT_COLS].to_csv(
-            constants.BEST_ELEVEN_CSV_PATH, index=False
-        )
-
-        logger.log(f"Saved best eleven to {constants.BEST_ELEVEN_CSV_PATH}", "ENGINE")
-
+        # Save All Players
+        all_players = self.result["players"].copy()
         for col in constants.OUTPUT_COLS:
             if col not in all_players.columns:
-                all_players[col] = (
-                    0.0
-                    if col
-                    in ["now_cost", "ep_next_3gw", "total_points", "form", "xG", "xA"]
-                    else ""
-                )
-
-        all_players[constants.OUTPUT_COLS].to_csv(
-            constants.ALLPLAYERS_CSV_PATH, index=False
-        )
-
-        logger.log(f"Saved all players to {constants.ALLPLAYERS_CSV_PATH}", "ENGINE")
+                all_players[col] = 0.0 if col in constants.NUMERIC_COLUMNS else ""
+        logger.save_all_players(all_players)
 
     # ------------------ Transfer Suggestions ------------------ #
     def fetch_user_team(self, entry_id, event_id):
         fetcher = FPLDataFetcher()
         user_team, bank = fetcher.fetch_user_team(entry_id, event_id)
-
         logger.log(
             f"Fetched user team for entry {entry_id} in event {event_id}.", "TRANSFERS"
         )
@@ -100,15 +82,7 @@ class MainController:
         else:
             my_team = transfer_manager.make_double_transfer(team, bank)
 
-        csv_path = (
-            constants.TRANSFER_SUGGESTION_CSV_PATH_TEAM1
-            if entry_id == constants.TEAM1["ENTRY_ID"]
-            else constants.TRANSFER_SUGGESTION_CSV_PATH_TEAM2
-        )
-
-        my_team.to_csv(csv_path, index=False)
-        logger.log(f"Saved transfer suggestions to {csv_path}", "TRANSFERS")
-        logger.separator()
+        logger.save_transfer_suggestions(my_team, entry_id)
 
     def transfer_controller(self):
         self.suggest_transfers(
