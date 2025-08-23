@@ -162,6 +162,9 @@ class FPLOddsEngine:
         players["team_name"] = players["team"].map(
             self.teams_df.set_index("id")["name"]
         )
+        players["team_strength"] = (
+            players["team_strength"] / players["team_strength"].mean()
+        )
         return players
 
     def _apply_odds_multiplier(self, players):
@@ -219,6 +222,7 @@ class FPLOddsEngine:
             )
             * players["fixture_multiplier"]
             * players["odds_multiplier"]
+            * players["team_strength"]
         )
         players["ep_next_3gw"] = (
             players["ep_per90"]
