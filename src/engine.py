@@ -284,11 +284,25 @@ class FPLTransferManager:
             best_delta, best_transfer = -999, None
             for _, out_row in my_team.iterrows():
                 max_price = out_row["now_cost"] + remaining_bank
+
+                # Count current players per real-life team
+                team_counts = my_team["team"].value_counts().to_dict()
+
+                # Candidate filtering
                 candidates = self.players_df[
                     (self.players_df["element_type"] == out_row["element_type"])
                     & (~self.players_df["id"].isin(my_team["id"]))
                     & (self.players_df["now_cost"] <= max_price)
                 ]
+
+                # Enforce team limit
+                candidates = candidates[
+                    candidates["team"].apply(
+                        lambda team_id: team_counts.get(team_id, 0) < constants.TEAM_PLAYER_LIMIT
+                        or team_id == out_row["team"]  # allow swapping within same team
+                    )
+                ]
+
                 for _, in_row in candidates.iterrows():
                     delta = in_row["ep_next_3gw"] - out_row["ep_next_3gw"]
                     if delta > best_delta:
@@ -298,9 +312,7 @@ class FPLTransferManager:
             if best_transfer:
                 out_row, in_row = best_transfer
                 my_team = my_team.drop(my_team[my_team["id"] == out_row["id"]].index)
-                my_team = pd.concat(
-                    [my_team, pd.DataFrame([in_row])], ignore_index=True
-                )
+                my_team = pd.concat([my_team, pd.DataFrame([in_row])], ignore_index=True)
                 remaining_bank += out_row["now_cost"] - in_row["now_cost"]
                 transfers.append(best_transfer)
             else:
