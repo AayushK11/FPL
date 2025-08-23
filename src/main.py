@@ -1,13 +1,13 @@
 from scraper import FPLDataFetcher
 from engine import FPLOddsEngine, FPLTeamOptimizer, FPLTransferManager
-from constants import *
+import constants
+import logger
 
 
 class MainController:
     def __init__(self):
         self.fpl_data = {}
         self.players_df = None
-        self.squad_manager = None
         self.result = None
         self.xgxa_df = None
 
@@ -18,14 +18,13 @@ class MainController:
 
         if "players" in self.fpl_data:
             self.players_df = self.fpl_data["players"].copy()
-            self.players_df.to_csv(PLAYERS_RAW_PATH, index=False)
+            self.players_df.to_csv(constants.PLAYERS_RAW_PATH, index=False)
 
         if "fixtures" in self.fpl_data:
-            self.fpl_data["fixtures"].to_csv(FIXTURES_RAW_PATH, index=False)
+            self.fpl_data["fixtures"].to_csv(constants.FIXTURES_RAW_PATH, index=False)
 
-        # Fetch xG/xA data
         self.xgxa_df = fetcher.get_xgxa_df("EPL", "2025")
-        self.xgxa_df.to_csv(XGXA_CSV_PATH, index=False)
+        self.xgxa_df.to_csv(constants.XGXA_CSV_PATH, index=False)
 
     # ------------------ Team Building ------------------ #
     def build_team(self):
@@ -37,39 +36,33 @@ class MainController:
         optimizer = FPLTeamOptimizer(players_ep)
         best_squad = optimizer.optimize_squad()
 
-        # Split starters and bench
-        self.result = {
-            "players": players_ep,
-            "starters": best_squad.iloc[:11].copy(),
-            "bench": best_squad.iloc[11:].copy(),
-        }
+        self.result = {"players": players_ep, "best_eleven": best_squad}
 
     # ------------------ Output ------------------ #
     def output_results(self):
         if not self.result:
-            print("FPL Engine |    No team built yet.")
+            logger.log("No team built yet", "ENGINE")
             return
 
-        self.result["starters"].to_csv(STARTERS_CSV_PATH, index=False)
-        print(f"FPL Engine |    Saved starters to {STARTERS_CSV_PATH}")
-
-        self.result["bench"].to_csv(BENCH_CSV_PATH, index=False)
-        print(f"FPL Engine |    Saved bench to {BENCH_CSV_PATH}")
-
-        # Save all players
+        best_eleven = self.result["best_eleven"].copy()
         all_players = self.result["players"].copy()
-        output_cols = [
-            "web_name",
-            "team",
-            "position_code",
-            "now_cost",
-            "ep_next_3gw",
-            "total_points",
-            "form",
-            "xG",
-            "xA",
-        ]
-        for col in output_cols:
+
+        for col in constants.OUTPUT_COLS:
+            if col not in best_eleven.columns:
+                best_eleven[col] = (
+                    0.0
+                    if col
+                    in ["now_cost", "ep_next_3gw", "total_points", "form", "xG", "xA"]
+                    else ""
+                )
+
+        best_eleven[constants.OUTPUT_COLS].to_csv(
+            constants.BEST_ELEVEN_CSV_PATH, index=False
+        )
+
+        logger.log(f"Saved best eleven to {constants.BEST_ELEVEN_CSV_PATH}", "ENGINE")
+
+        for col in constants.OUTPUT_COLS:
             if col not in all_players.columns:
                 all_players[col] = (
                     0.0
@@ -77,21 +70,26 @@ class MainController:
                     in ["now_cost", "ep_next_3gw", "total_points", "form", "xG", "xA"]
                     else ""
                 )
-        all_players[output_cols].to_csv(ALLPLAYERS_CSV_PATH, index=False)
-        print(f"FPL Engine |    Saved all players to {ALLPLAYERS_CSV_PATH}")
+
+        all_players[constants.OUTPUT_COLS].to_csv(
+            constants.ALLPLAYERS_CSV_PATH, index=False
+        )
+
+        logger.log(f"Saved all players to {constants.ALLPLAYERS_CSV_PATH}", "ENGINE")
 
     # ------------------ Transfer Suggestions ------------------ #
     def fetch_user_team(self, entry_id, event_id):
         fetcher = FPLDataFetcher()
         user_team, bank = fetcher.fetch_user_team(entry_id, event_id)
-        print(
-            f"Transfers  |    Fetched user team for entry {entry_id} in event {event_id}."
+
+        logger.log(
+            f"Fetched user team for entry {entry_id} in event {event_id}.", "TRANSFERS"
         )
         return user_team, bank
 
     def suggest_transfers(self, entry_id, transfer_limit, event_id):
         if not self.result:
-            print("Transfers |    No team built yet. Run build_team() first.")
+            logger.log("No team built yet. Run build_team() first.", "TRANSFERS")
             return
 
         team, bank = self.fetch_user_team(entry_id, event_id)
@@ -102,52 +100,41 @@ class MainController:
         else:
             my_team = transfer_manager.make_double_transfer(team, bank)
 
-        output_cols = [
-            "web_name",
-            "team",
-            "position_code",
-            "now_cost",
-            "ep_next_3gw",
-            "total_points",
-            "form",
-            "xG",
-            "xA",
-        ]
-        available_cols = [col for col in output_cols if col in my_team.columns]
         csv_path = (
-            TRANSFER_SUGGESTION_CSV_PATH_TEAM1
-            if entry_id == TEAM1["ENTRY_ID"]
-            else TRANSFER_SUGGESTION_CSV_PATH_TEAM2
-        )
-        my_team[available_cols].to_csv(csv_path, index=False)
-        print(
-            f"Transfers  |    Saved transfer suggestions to {csv_path}"
+            constants.TRANSFER_SUGGESTION_CSV_PATH_TEAM1
+            if entry_id == constants.TEAM1["ENTRY_ID"]
+            else constants.TRANSFER_SUGGESTION_CSV_PATH_TEAM2
         )
 
+        my_team.to_csv(csv_path, index=False)
+        logger.log(f"Saved transfer suggestions to {csv_path}", "TRANSFERS")
+        logger.separator()
+
     def transfer_controller(self):
-        self.suggest_transfers(TEAM1["ENTRY_ID"], TEAM1["TRANSFER_LIMIT"], GW)
-        print("Transfers  |    Suggested transfers based on current team.")
-        print("-----------------------------------------------------------------------")
-        self.suggest_transfers(TEAM2["ENTRY_ID"], TEAM2["TRANSFER_LIMIT"], GW)
-        print("Transfers  |    Suggested transfers based on current team.")
-        print("-----------------------------------------------------------------------")
+        self.suggest_transfers(
+            constants.TEAM1["ENTRY_ID"], constants.TEAM1["TRANSFER_LIMIT"], constants.GW
+        )
+        self.suggest_transfers(
+            constants.TEAM2["ENTRY_ID"], constants.TEAM2["TRANSFER_LIMIT"], constants.GW
+        )
 
     # ------------------ Run Full Pipeline ------------------ #
     def run(self):
         self.fetch_data()
-        print("Scraper    |    Data fetched and saved successfully.")
-        print("-----------------------------------------------------------------------")
+        logger.log("Data fetched and saved successfully.", "SCRAPER")
+        logger.separator()
 
         self.build_team()
-        print("FPL Engine |    Best XI Team built successfully.")
-        print("-----------------------------------------------------------------------")
+        logger.log("Best XI Team built successfully.", "ENGINE")
+        logger.separator()
 
         self.output_results()
-        print("FPL Engine |    Results output successfully.")
-        print("-----------------------------------------------------------------------")
+        logger.log("Results output successfully.", "ENGINE")
+        logger.separator()
 
         self.transfer_controller()
-        print("FPL Engine |    All operations completed successfully.")
+        logger.log("Transfer suggestions generated successfully.", "TRANSFERS")
+        logger.separator()
 
 
 if __name__ == "__main__":

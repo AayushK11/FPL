@@ -3,33 +3,7 @@ import numpy as np
 import pulp
 from rapidfuzz import process, fuzz
 import constants
-
-# ------------------ Data Management ------------------ #
-class FPLDataManager:
-    def __init__(self, players_df, teams_df=None, fixtures_df=None):
-        self.players_df = players_df.copy()
-        self.teams_df = teams_df.copy() if teams_df is not None else None
-        self.fixtures_df = fixtures_df.copy() if fixtures_df is not None else None
-
-    def merge_xgxa(self, xgxa_df):
-        key = (
-            "id"
-            if "id" in xgxa_df.columns and "id" in self.players_df.columns
-            else "web_name"
-        )
-        self.players_df[key] = (
-            self.players_df[key].astype(int) if key == "id" else self.players_df[key]
-        )
-        xgxa_df[key] = xgxa_df[key].astype(int) if key == "id" else xgxa_df[key]
-        self.players_df = self.players_df.merge(
-            xgxa_df[[key, "xG", "xA"]], on=key, how="left"
-        )
-        self.players_df["xG"] = self.players_df["xG"].fillna(0.0)
-        self.players_df["xA"] = self.players_df["xA"].fillna(0.0)
-        return self.players_df
-
-    def clean(self):
-        return self.players_df.copy()
+import logger
 
 
 # ------------------ Expected Points Engine ------------------ #
@@ -41,7 +15,20 @@ class FPLOddsEngine:
 
     def compute_expected_points(self, xgxa_df=None, odds_df=None):
         players = self.players_df.copy()
+        players = self._convert_numeric_columns(players)
+        players = self._merge_xgxa(players, xgxa_df)
+        players = self._merge_odds(players, odds_df)
+        players = self._compute_offensive_ep(players)
+        players = self._compute_bonus(players)
+        players = self._apply_fixture_multiplier(players)
+        players = self._apply_team_strength(players)
+        players = self._apply_odds_multiplier(players)
+        players = self._apply_minutes_form_selected(players)
+        players = self._finalize_ep(players)
+        return players
 
+    # ------------------ Private Helper Functions ------------------ #
+    def _convert_numeric_columns(self, players):
         numeric_cols = [
             "form",
             "ict_index",
@@ -56,19 +43,8 @@ class FPLOddsEngine:
         for col in numeric_cols:
             if col in players.columns:
                 players[col] = pd.to_numeric(players[col], errors="coerce").fillna(0)
-
-        players = self._merge_xgxa(players, xgxa_df)
-        players = self._merge_odds(players, odds_df)
-        players = self._compute_offensive_ep(players)
-        players = self._compute_bonus(players)
-        players = self._apply_fixture_multiplier(players)
-        players = self._apply_team_strength(players)
-        players = self._apply_odds_multiplier(players)
-        players = self._apply_minutes_form_selected(players)
-        players = self._finalize_ep(players)
         return players
 
-    # ---- Private helper functions ---- #
     def _merge_xgxa(self, players, xgxa_df):
         if xgxa_df is None:
             return players
@@ -102,7 +78,7 @@ class FPLOddsEngine:
         return players
 
     def _compute_offensive_ep(self, players):
-        p = constants.POINTS_PARAM.copy()
+        p = constants.POINTS_PARAM
         players["minutes_factor"] = (
             np.log1p(players.get("minutes", 0)) * p["minutes_scaler"]
         )
@@ -112,7 +88,7 @@ class FPLOddsEngine:
         return players
 
     def _compute_bonus(self, players):
-        p = constants.POINTS_PARAM.copy()
+        p = constants.POINTS_PARAM
         if "ict_index" in players.columns:
             players["ict_index"] = pd.to_numeric(
                 players["ict_index"], errors="coerce"
@@ -128,7 +104,7 @@ class FPLOddsEngine:
         return players
 
     def _apply_fixture_multiplier(self, players):
-        p = constants.POINTS_PARAM.copy()
+        p = constants.POINTS_PARAM
         if self.fixtures_df is None or "kickoff_time" not in self.fixtures_df.columns:
             players["fixture_multiplier"] = 1.0
             return players
@@ -140,6 +116,7 @@ class FPLOddsEngine:
         future = self.fixtures_df[self.fixtures_df["kickoff_time"] >= now].sort_values(
             "kickoff_time"
         )
+
         home_diffs = (
             future.groupby("team_h")
             .head(3)[["team_h", "team_h_difficulty"]]
@@ -162,6 +139,7 @@ class FPLOddsEngine:
             .mean()
             .reset_index()
         )
+
         players = players.merge(avg_diffs, on="team", how="left")
         players["fixture_multiplier"] = (
             (6 - players["avg_difficulty"].fillna(3)) / 5
@@ -184,7 +162,7 @@ class FPLOddsEngine:
         return players
 
     def _apply_odds_multiplier(self, players):
-        p = constants.POINTS_PARAM.copy()
+        p = constants.POINTS_PARAM
         if "goal_odds" in players.columns:
             players["goal_prob_from_odds"] = 1 / players["goal_odds"].replace(0, np.nan)
             players["odds_multiplier"] = 1 + (
@@ -199,7 +177,7 @@ class FPLOddsEngine:
         return players
 
     def _apply_minutes_form_selected(self, players):
-        p = constants.POINTS_PARAM.copy()
+        p = constants.POINTS_PARAM
         players["expected_minutes_next"] = np.where(
             players["minutes"] > 0,
             np.minimum(90, players["minutes"] / players.get("appearances", 1)),
@@ -265,15 +243,19 @@ class FPLTeamOptimizer:
     def optimize_squad(self, budget=100.0, squad_size=15, team_limit=3):
         pos_map = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
         self.players_df["position_code"] = self.players_df["element_type"].map(pos_map)
+
         prob = pulp.LpProblem("FPL_Squad_Optimize", pulp.LpMaximize)
         x = pulp.LpVariable.dicts(
             "x", self.players_df["id"].tolist(), lowBound=0, upBound=1, cat="Integer"
         )
+
         ep_map = self.players_df.set_index("id")["ep_next_3gw"].to_dict()
         prob += pulp.lpSum([ep_map[i] * x[i] for i in x]), "Total_EP"
         prob += pulp.lpSum([x[i] for i in x]) == squad_size
+
         cost_map = self.players_df.set_index("id")["now_cost"].to_dict()
         prob += pulp.lpSum([cost_map[i] * x[i] for i in x]) <= budget * 10
+
         # Position & team constraints
         for code, name in pos_map.items():
             ids = self.players_df[self.players_df["element_type"] == code][
@@ -284,6 +266,7 @@ class FPLTeamOptimizer:
             prob += pulp.lpSum([x[i] for i in ids]) <= maxp
         for team_id, group in self.players_df.groupby("team"):
             prob += pulp.lpSum([x[i] for i in group["id"].tolist()]) <= team_limit
+
         pulp.PULP_CBC_CMD(msg=False).solve(prob)
         selected_ids = [i for i in x if pulp.value(x[i]) >= 0.5]
         return self.players_df[self.players_df["id"].isin(selected_ids)].copy()
@@ -297,6 +280,7 @@ class FPLTransferManager:
     def _find_best_transfer(self, my_team, bank, max_transfers=1):
         transfers, remaining_bank = [], bank
         current_ep = my_team["ep_next_3gw"].sum()
+
         for t in range(max_transfers):
             best_delta, best_transfer = -999, None
             for _, out_row in my_team.iterrows():
@@ -311,6 +295,7 @@ class FPLTransferManager:
                     if delta > best_delta:
                         best_delta = delta
                         best_transfer = (out_row, in_row)
+
             if best_transfer:
                 out_row, in_row = best_transfer
                 my_team = my_team.drop(my_team[my_team["id"] == out_row["id"]].index)
@@ -321,6 +306,7 @@ class FPLTransferManager:
                 transfers.append(best_transfer)
             else:
                 break
+
         new_ep = my_team["ep_next_3gw"].sum()
         return my_team, transfers, current_ep, new_ep
 
@@ -330,18 +316,26 @@ class FPLTransferManager:
         new_team, transfers, current_ep, new_ep = self._find_best_transfer(
             my_team, bank, max_transfers=1
         )
+
         if transfers:
+            logger.log("Suggested Transfer:", "TRANSFERS")
             out_row, in_row = transfers[0]
-            print(
-                f"Transfers  |    Suggested Transfer:\n"
-                f"Transfers  |        OUT: {out_row['web_name']} ({out_row['ep_next_3gw']:.2f} EP, £{out_row['now_cost']/10:.1f}m)\n"
-                f"Transfers  |        IN : {in_row['web_name']} ({in_row['ep_next_3gw']:.2f} EP, £{in_row['now_cost']/10:.1f}m)\n"
-                f"Transfers  |    Current XI EP: {current_ep:.2f}\n"
-                f"Transfers  |    New XI EP: {new_ep:.2f}\n"
-                f"Transfers  |    Δ Expected Points: {new_ep-current_ep:.2f}"
+            logger.log("Suggested Transfer:", "TRANSFERS")
+            logger.log(
+                f"\tOUT: {out_row['web_name']} | EP: {out_row['ep_next_3gw']:.2f} | Cost: £{out_row['now_cost']/10:.1f}m",
+                "TRANSFERS",
+            )
+            logger.log(
+                f"\tIN : {in_row['web_name']} | EP: {in_row['ep_next_3gw']:.2f} | Cost: £{in_row['now_cost']/10:.1f}m",
+                "TRANSFERS",
+            )
+            logger.log(
+                f"Current XI EP: {current_ep:.2f} | New XI EP: {new_ep:.2f} | Δ EP: {new_ep-current_ep:.2f}",
+                "TRANSFERS",
             )
         else:
-            print("Transfers  |    No valid transfer found.")
+            logger.log("No valid transfer found.", "TRANSFERS")
+
         return new_team
 
     def make_double_transfer(self, current_team, bank=0):
@@ -350,16 +344,22 @@ class FPLTransferManager:
         new_team, transfers, current_ep, new_ep = self._find_best_transfer(
             my_team, bank, max_transfers=2
         )
+
         if transfers:
-            print("Transfers  |    Suggested Double Transfer:")
+            logger.log("Suggested Double Transfer:", "TRANSFERS")
             for out_row, in_row in transfers:
-                print(
-                    f"Transfers  |        OUT: {out_row['web_name']} ({out_row['ep_next_3gw']:.2f} EP, £{out_row['now_cost']/10:.1f}m)\n"
-                    f"Transfers  |        IN : {in_row['web_name']} ({in_row['ep_next_3gw']:.2f} EP, £{in_row['now_cost']/10:.1f}m)"
+                logger.log(
+                    f"\tOUT: {out_row['web_name']} | EP: {out_row['ep_next_3gw']:.2f} | Cost: £{out_row['now_cost']/10:.1f}m",
+                    "TRANSFERS",
                 )
-            print(f"Transfers  |    Current XI EP: {current_ep:.2f}")
-            print(f"Transfers  |    New XI EP: {new_ep:.2f}")
-            print(f"Transfers  |    Δ Expected Points: {new_ep-current_ep:.2f}")
+                logger.log(
+                    f"\tIN : {in_row['web_name']} | EP: {in_row['ep_next_3gw']:.2f} | Cost: £{in_row['now_cost']/10:.1f}m",
+                    "TRANSFERS",
+                )
+            logger.log(
+                f"Current XI EP: {current_ep:.2f} | New XI EP: {new_ep:.2f} | Δ EP: {new_ep-current_ep:.2f}",
+                "TRANSFERS",
+            )
         else:
-            print("Transfers  |    No valid transfers found.")
+            logger.log("No valid transfers found.", "TRANSFERS")
         return new_team
