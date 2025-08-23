@@ -1,5 +1,6 @@
 import constants
 
+
 # ------------------ Log ------------------- #
 def log(msg, section="INFO"):
     prefixes = {
@@ -27,16 +28,18 @@ def save_csv(df, path, section="INFO"):
 
 
 # ------------------ Specialized CSV Helpers ------------------- #
+
+
+def format_columns(df):
+    df["pos_order"] = df["position_code"].map(constants.REV_POSITION_MAP)
+    df = df.sort_values(["pos_order", "ep_next_3gw"], ascending=[True, False]).drop(
+        columns=["pos_order"]
+    )
+    return df[constants.OUTPUT_COLS]
+
+
 def save_best_eleven(df):
-    for col in constants.OUTPUT_COLS:
-        if col not in df.columns:
-            df[col] = (
-                0.0
-                if col
-                in ["now_cost", "ep_next_3gw", "total_points", "form", "xG", "xA"]
-                else ""
-            )
-    df = df[constants.OUTPUT_COLS]
+    df = format_columns(df)
     save_csv(df, constants.BEST_ELEVEN_CSV_PATH, section="ENGINE")
 
 
@@ -44,13 +47,12 @@ def save_all_players(df):
     save_csv(df, constants.ALLPLAYERS_CSV_PATH, section="ENGINE")
 
 
-def save_transfer_suggestions(df, entry_id):
-    csv_path = (
-        constants.TRANSFER_SUGGESTION_CSV_PATH_TEAM1
-        if entry_id == constants.TEAM1["ENTRY_ID"]
-        else constants.TRANSFER_SUGGESTION_CSV_PATH_TEAM2
+def save_transfer_suggestions(df, team_name, gw_id):
+    file_name = constants.TRANSFER_SUGGESTION_CSV_PATH.format(
+        teamname=team_name, gw=gw_id
     )
-    save_csv(df, csv_path, section="TRANSFERS")
+    df = format_columns(df)
+    save_csv(df, file_name, section="TRANSFERS")
     separator()
 
 

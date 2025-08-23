@@ -61,36 +61,33 @@ class MainController:
         logger.save_all_players(all_players)
 
     # ------------------ Transfer Suggestions ------------------ #
-    def fetch_user_team(self, entry_id, event_id):
+    def fetch_user_team(self, team_info, gw_id):
         fetcher = FPLDataFetcher()
-        user_team, bank = fetcher.fetch_user_team(entry_id, event_id)
+        user_team, bank = fetcher.fetch_user_team(team_info["ENTRY_ID"], gw_id)
         logger.log(
-            f"Fetched user team for entry {entry_id} in event {event_id}.", "TRANSFERS"
+            f"Fetched \"{team_info['NAME']}\" team owned by {team_info['MANAGER']} for GW {gw_id}.",
+            "TRANSFERS",
         )
         return user_team, bank
 
-    def suggest_transfers(self, entry_id, transfer_limit, event_id):
+    def suggest_transfers(self, team_info, gw_id):
         if not self.result:
             logger.log("No team built yet. Run build_team() first.", "TRANSFERS")
             return
 
-        team, bank = self.fetch_user_team(entry_id, event_id)
+        team, bank = self.fetch_user_team(team_info, gw_id)
         transfer_manager = FPLTransferManager(self.result["players"])
 
-        if transfer_limit == 1:
+        if team_info["TRANSFER_LIMIT"] == 1:
             my_team = transfer_manager.make_single_transfer(team, bank)
         else:
             my_team = transfer_manager.make_double_transfer(team, bank)
 
-        logger.save_transfer_suggestions(my_team, entry_id)
+        logger.save_transfer_suggestions(my_team, team_info["NAME"], gw_id)
 
     def transfer_controller(self):
-        self.suggest_transfers(
-            constants.TEAM1["ENTRY_ID"], constants.TEAM1["TRANSFER_LIMIT"], constants.GW
-        )
-        self.suggest_transfers(
-            constants.TEAM2["ENTRY_ID"], constants.TEAM2["TRANSFER_LIMIT"], constants.GW
-        )
+        for team in constants.TEAMS:
+            self.suggest_transfers(team, constants.GW)
 
     # ------------------ Run Full Pipeline ------------------ #
     def run(self):

@@ -241,8 +241,7 @@ class FPLTeamOptimizer:
         self.players_df = players_df.copy()
 
     def optimize_squad(self, budget=100.0, squad_size=15, team_limit=3):
-        pos_map = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
-        self.players_df["position_code"] = self.players_df["element_type"].map(pos_map)
+        self.players_df["position_code"] = self.players_df["element_type"].map(constants.POSITION_MAP)
 
         prob = pulp.LpProblem("FPL_Squad_Optimize", pulp.LpMaximize)
         x = pulp.LpVariable.dicts(
@@ -257,7 +256,7 @@ class FPLTeamOptimizer:
         prob += pulp.lpSum([cost_map[i] * x[i] for i in x]) <= budget * 10
 
         # Position & team constraints
-        for code, name in pos_map.items():
+        for code, name in constants.POSITION_MAP.items():
             ids = self.players_df[self.players_df["element_type"] == code][
                 "id"
             ].tolist()
@@ -306,6 +305,9 @@ class FPLTransferManager:
                 transfers.append(best_transfer)
             else:
                 break
+
+        if "position_code" not in my_team.columns and "element_type" in my_team.columns:
+            my_team["position_code"] = my_team["element_type"].map(constants.POSITION_MAP)
 
         new_ep = my_team["ep_next_3gw"].sum()
         return my_team, transfers, current_ep, new_ep
