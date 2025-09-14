@@ -65,7 +65,7 @@ SQUAD_SIZE = 11  # Size of optimized squad
 TEAM_PLAYER_LIMIT = 3  # Max players per real-life team in squad
 
 # ------------------ Gameweek & Teams ------------------ #
-GW = 2
+GW = 3
 
 TEAMS = [
     {
@@ -80,4 +80,10 @@ TEAMS = [
         "ENTRY_ID": 10457709,
         "TRANSFER_LIMIT": 1,
     },
+    # {
+    #     "NAME": "Lund Hope",
+    #     "MANAGER": "Aayush",
+    #     "ENTRY_ID": 4948948,
+    #     "TRANSFER_LIMIT": 2,
+    # },
 ]
