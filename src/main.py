@@ -88,7 +88,7 @@ class MainController:
         else:
             my_team = transfer_manager.make_double_transfer(team, bank)
 
-        logger.save_transfer_suggestions(my_team, team_info["NAME"], gw_id)
+        logger.save_transfer_suggestions(my_team, team_info["NAME"])
 
     def transfer_controller(self):
         for team in constants.TEAMS:

@@ -11,7 +11,7 @@ TEAMS_RAW_PATH = "data/teams_raw.csv"
 XGXA_CSV_PATH = "data/xgxa.csv"
 ALLPLAYERS_CSV_PATH = "output/all_players.csv"
 BEST_ELEVEN_CSV_PATH = "output/best_eleven.csv"
-TRANSFER_SUGGESTION_CSV_PATH = "output/{teamname}_{gw}.csv"
+TRANSFER_SUGGESTION_CSV_PATH = "output/{teamname}.csv"
 
 # ------------------ Points & Multipliers ------------------ #
 POINTS_PARAM = {
@@ -65,7 +65,7 @@ SQUAD_SIZE = 11  # Size of optimized squad
 TEAM_PLAYER_LIMIT = 3  # Max players per real-life team in squad
 
 # ------------------ Gameweek & Teams ------------------ #
-GW = 3
+GW = 6
 
 TEAMS = [
     {

@@ -47,10 +47,8 @@ def save_all_players(df):
     save_csv(df, constants.ALLPLAYERS_CSV_PATH, section="ENGINE")
 
 
-def save_transfer_suggestions(df, team_name, gw_id):
-    file_name = constants.TRANSFER_SUGGESTION_CSV_PATH.format(
-        teamname=team_name, gw=gw_id
-    )
+def save_transfer_suggestions(df, team_name):
+    file_name = constants.TRANSFER_SUGGESTION_CSV_PATH.format(teamname=team_name)
     df = format_columns(df)
     save_csv(df, file_name, section="TRANSFERS")
     separator()
