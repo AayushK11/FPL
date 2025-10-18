@@ -83,10 +83,10 @@ class MainController:
         team, bank = self.fetch_user_team(team_info, gw_id)
         transfer_manager = FPLTransferManager(self.result["players"])
 
-        if team_info["TRANSFER_LIMIT"] == 1:
-            my_team = transfer_manager.make_single_transfer(team, bank)
-        else:
-            my_team = transfer_manager.make_double_transfer(team, bank)
+        transfer_limit = team_info.get("TRANSFER_LIMIT", 1)
+        my_team = transfer_manager.make_multiple_transfers(
+            team, num_transfers=transfer_limit, bank=bank
+        )
 
         logger.save_transfer_suggestions(my_team, team_info["NAME"])
 

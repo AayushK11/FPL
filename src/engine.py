@@ -338,20 +338,11 @@ class FPLTransferManager:
         new_ep = my_team["ep_next_3gw"].sum()
         return my_team, transfers, current_ep, new_ep
 
-    def make_single_transfer(self, current_team, bank=0):
+    def make_multiple_transfers(self, current_team, num_transfers=1, bank=0):
         my_team_ids = [p["element"] for p in current_team]
         my_team = self.players_df[self.players_df["id"].isin(my_team_ids)].copy()
         new_team, transfers, current_ep, new_ep = self._find_best_transfer(
-            my_team, bank, max_transfers=1
+            my_team, bank, max_transfers=num_transfers
         )
         logger.log_transfer(transfers, current_ep, new_ep, double=False)
-        return new_team
-
-    def make_double_transfer(self, current_team, bank=0):
-        my_team_ids = [p["element"] for p in current_team]
-        my_team = self.players_df[self.players_df["id"].isin(my_team_ids)].copy()
-        new_team, transfers, current_ep, new_ep = self._find_best_transfer(
-            my_team, bank, max_transfers=2
-        )
-        logger.log_transfer(transfers, current_ep, new_ep, double=True)
         return new_team
