@@ -1,16 +1,16 @@
 Player Name         ,Team           ,Pos, Price,     EP, Pts, Form,   xG,   xA
-Dúbravka            ,Burnley        , GK,   4.0,   3.87,  29,  4.0, 0.00, 0.00
-Pécsi               ,Liverpool      , GK,   3.9,   0.21,   0,  0.0, 0.00, 0.00
-Calafiori           ,Arsenal        ,DEF,   5.8,  46.77,  48,  4.3, 1.60, 0.39
-J.Timber            ,Arsenal        ,DEF,   6.0,  44.43,  54,  6.3, 1.15, 0.89
-Guéhi               ,Crystal Palace ,DEF,   4.9,  38.56,  50,  4.7, 1.07, 1.20
-Ballard             ,Sunderland     ,DEF,   4.6,  31.02,  33,  4.7, 0.99, 0.96
-Van den Berg        ,Brentford      ,DEF,   4.5,  26.44,  26,  3.3, 1.36, 0.08
-Gakpo               ,Liverpool      ,MID,   7.5, 110.63,  40,  5.0, 3.10, 2.49
-Semenyo             ,Bournemouth    ,MID,   8.1, 103.76,  70,  9.7, 4.51, 0.44
-Enzo                ,Chelsea        ,MID,   6.7,  97.20,  41,  3.7, 3.89, 0.81
-Sarr                ,Crystal Palace ,MID,   6.5,  84.79,  38,  6.7, 3.50, 0.95
-Ndiaye              ,Everton        ,MID,   6.5,  68.46,  41,  4.3, 2.18, 2.08
-Haaland             ,Man City       ,FWD,  14.7, 223.66,  83, 12.3, 8.78, 1.30
-Mateta              ,Crystal Palace ,FWD,   7.6, 174.26,  37,  7.0, 8.19, 0.32
-Gyökeres            ,Arsenal        ,FWD,   9.0, 105.55,  28,  2.0, 4.15, 0.29
+Dúbravka            ,Burnley        , GK,   4.0,   4.13,  31,  4.3, 0.00, 0.00
+Kinsky              ,Spurs          , GK,   3.9,   0.20,   0,  0.0, 0.00, 0.00
+Calafiori           ,Arsenal        ,DEF,   5.8,  48.62,  54,  6.0, 1.66, 0.39
+J.Timber            ,Arsenal        ,DEF,   6.1,  45.05,  60,  7.7, 1.15, 0.90
+Guéhi               ,Crystal Palace ,DEF,   5.0,  41.07,  54,  3.7, 1.13, 1.20
+Ballard             ,Sunderland     ,DEF,   4.6,  37.41,  35,  5.0, 1.20, 0.96
+Van de Ven          ,Spurs          ,DEF,   4.7,  37.02,  55,  8.3, 1.50, 0.12
+Gakpo               ,Liverpool      ,MID,   7.6, 110.68,  42,  5.3, 3.12, 3.19
+Semenyo             ,Bournemouth    ,MID,   8.1, 106.43,  73,  8.3, 4.54, 0.46
+Enzo                ,Chelsea        ,MID,   6.7,  92.40,  43,  1.3, 4.06, 1.31
+Sarr                ,Crystal Palace ,MID,   6.6,  88.32,  40,  3.7, 3.55, 0.95
+Ndiaye              ,Everton        ,MID,   6.5,  71.47,  43,  4.3, 2.31, 2.08
+Haaland             ,Man City       ,FWD,  14.8, 229.88,  85,  7.7, 9.20, 1.30
+Mateta              ,Crystal Palace ,FWD,   7.8, 182.21,  39,  7.0, 8.33, 0.32
+Gyökeres            ,Arsenal        ,FWD,   9.0, 108.35,  30,  2.0, 4.22, 0.29

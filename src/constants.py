@@ -65,20 +65,20 @@ SQUAD_SIZE = 11  # Size of optimized squad
 TEAM_PLAYER_LIMIT = 3  # Max players per real-life team in squad
 
 # ------------------ Gameweek & Teams ------------------ #
-GW = 8
+GW = 9
 
 TEAMS = [
     {
         "NAME": "Paneer Tikka MoSalah",
         "MANAGER": "Aayush",
         "ENTRY_ID": 3816560,
-        "TRANSFER_LIMIT": 2,
+        "TRANSFER_LIMIT": 3,
     },
     {
         "NAME": "Old Havertz Kai Hard",
         "MANAGER": "Aayush",
         "ENTRY_ID": 10457709,
-        "TRANSFER_LIMIT": 1,
+        "TRANSFER_LIMIT": 2,
     },
     # {
     #     "NAME": "Lund Hope",
