@@ -1,16 +1,16 @@
 Player Name         ,Team           ,Pos, Price,     EP, Pts, Form,   xG,   xA
-Dúbravka            ,Burnley        , GK,   4.0,   4.08,  35,  2.0, 0.00, 0.00
-Raya                ,Arsenal        , GK,   5.9,   3.77,  53,  4.3, 0.00, 0.00
-Guéhi               ,Crystal Palace ,DEF,   5.1,  41.08,  64,  4.7, 1.13, 1.24
-Rodon               ,Leeds          ,DEF,   4.1,  26.52,  46,  5.0, 1.04, 0.13
-Tarkowski           ,Everton        ,DEF,   5.4,  17.93,  43,  2.7, 0.45, 0.47
-Senesi              ,Bournemouth    ,DEF,   5.0,  12.83,  58,  3.3, 0.04, 0.65
-Gabriel             ,Arsenal        ,DEF,   6.6,   5.99,  81,  7.3, 0.00, 0.00
-Enzo                ,Chelsea        ,MID,   6.7, 134.10,  48,  2.3, 4.94, 2.42
-B.Fernandes         ,Man Utd        ,MID,   8.9, 127.51,  50,  4.7, 4.48, 2.76
-Semenyo             ,Bournemouth    ,MID,   8.1, 121.92,  75,  1.7, 5.32, 0.46
-Sarr                ,Crystal Palace ,MID,   6.7, 102.33,  46,  2.7, 4.15, 1.11
-Minteh              ,Brighton       ,MID,   6.0,  75.27,  50,  5.7, 2.21, 2.42
-Haaland             ,Man City       ,FWD,  14.9, 279.30, 102,  6.3,11.36, 1.41
-Mateta              ,Crystal Palace ,FWD,   8.1, 187.39,  50,  4.3, 8.51, 0.46
-Thiago              ,Brentford      ,FWD,   6.3,   7.29,  60,  6.7, 0.00, 0.00
+Dúbravka            ,Burnley        , GK,   4.0,   4.14,  37,  2.0, 0.00, 0.00
+Raya                ,Arsenal        , GK,   5.9,   3.77,  55,  3.0, 0.00, 0.00
+Guéhi               ,Crystal Palace ,DEF,   5.1,  41.09,  69,  5.0, 1.13, 1.24
+Rodon               ,Leeds          ,DEF,   4.1,  28.08,  49,  1.7, 1.04, 0.27
+Senesi              ,Bournemouth    ,DEF,   5.0,  21.55,  61,  2.7, 0.06, 1.41
+Tarkowski           ,Everton        ,DEF,   5.4,  18.70,  51,  5.0, 0.45, 0.53
+Virgil              ,Liverpool      ,DEF,   6.0,  18.20,  44,  3.0, 0.55, 0.07
+B.Fernandes         ,Man Utd        ,MID,   8.9, 140.31,  52,  4.0, 5.07, 2.83
+Sarr                ,Crystal Palace ,MID,   6.7, 106.66,  49,  3.0, 4.32, 1.20
+Minteh              ,Brighton       ,MID,   6.2,  85.25,  61,  7.7, 2.41, 2.95
+Semenyo             ,Bournemouth    ,MID,   7.9,  81.12,  75,  0.7, 5.32, 0.46
+Rice                ,Arsenal        ,MID,   6.9,  73.28,  71,  7.0, 1.70, 2.21
+Haaland             ,Man City       ,FWD,  14.9, 307.56, 104,  6.3,12.63, 1.41
+Mateta              ,Crystal Palace ,FWD,   8.1, 196.75,  51,  4.0, 8.98, 0.46
+Welbeck             ,Brighton       ,FWD,   6.6, 105.15,  53,  5.3, 4.81, 0.27
