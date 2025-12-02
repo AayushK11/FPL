@@ -65,7 +65,7 @@ SQUAD_SIZE = 11  # Size of optimized squad
 TEAM_PLAYER_LIMIT = 3  # Max players per real-life team in squad
 
 # ------------------ Gameweek & Teams ------------------ #
-GW = 12
+GW = 13
 
 TEAMS = [
     {
